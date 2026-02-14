@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROAS & Break-even kalkulačka</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --border: #dbe3ee;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --ok: #0f766e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(160deg, #eef3ff 0%, var(--bg) 45%, #f8fafc 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px rgba(31, 42, 55, 0.12);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 28px 30px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #ffffff 20%, #f8fbff 100%);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 3.3vw, 2rem);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0;
+    }
+
+    .panel {
+      padding: 24px 30px 28px;
+    }
+
+    .panel + .panel {
+      border-left: 1px solid var(--border);
+    }
+
+    @media (max-width: 740px) {
+      .panel + .panel { border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 1.06rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .unit {
+      position: absolute;
+      right: 12px;
+      color: #8b97a6;
+      font-weight: 600;
+      font-size: 0.88rem;
+      pointer-events: none;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 40px 12px 12px;
+      font-size: 1rem;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .15s ease, box-shadow .15s ease;
+      appearance: textfield;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result {
+      border: 1px solid var(--border);
+      background: #fbfdff;
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+    }
+
+    .result .label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .result .value {
+      margin: 5px 0 0;
+      font-size: 1.35rem;
+      font-weight: 760;
+      letter-spacing: 0.01em;
+      color: var(--ok);
+    }
+
+    .hint {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .hint code {
+      background: #f1f5f9;
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>ROAS &amp; Break-even kalkulačka</h1>
+      <p class="subtitle">Rychlý výpočet klíčových metrik pro e-commerce kampaně.</p>
+    </header>
+
+    <section class="content">
+      <div class="panel">
+        <h2 class="section-title">Vstupy</h2>
+        <div class="grid">
+          <label>
+            Cena produktu
+            <div class="input-wrap">
+              <input id="price" type="number" min="0" step="0.01" value="1500" />
+              <span class="unit">Kč</span>
+            </div>
+          </label>
+
+          <label>
+            Marže
+            <div class="input-wrap">
+              <input id="margin" type="number" min="0" max="100" step="0.01" value="40" />
+              <span class="unit">%</span>
+            </div>
+          </label>
+
+          <label>
+            Náklady na dopravu
+            <div class="input-wrap">
+              <input id="shipping" type="number" min="0" step="0.01" value="120" />
+              <span class="unit">Kč</span>
+            </div>
+          </label>
+
+          <label>
+            Konverzní poměr
+            <div class="input-wrap">
+              <input id="cr" type="number" min="0" max="100" step="0.01" value="2.5" />
+              <span class="unit">%</span>
+            </div>
+          </label>
+
+          <label>
+            CPC
+            <div class="input-wrap">
+              <input id="cpc" type="number" min="0" step="0.01" value="12" />
+              <span class="unit">Kč</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Výstupy</h2>
+        <div class="results">
+          <article class="result">
+            <p class="label">Break-even ROAS</p>
+            <p id="beRoas" class="value">–</p>
+          </article>
+
+          <article class="result">
+            <p class="label">Maximální CPA</p>
+            <p id="maxCpa" class="value">–</p>
+          </article>
+
+          <article class="result">
+            <p class="label">Maximální CPC</p>
+            <p id="maxCpc" class="value">–</p>
+          </article>
+
+          <article class="result">
+            <p class="label">Doporučený cílový ROAS (+20 %)</p>
+            <p id="targetRoas" class="value">–</p>
+          </article>
+        </div>
+
+        <p id="status" class="hint"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fields = {
+      price: document.getElementById('price'),
+      margin: document.getElementById('margin'),
+      shipping: document.getElementById('shipping'),
+      cr: document.getElementById('cr'),
+      cpc: document.getElementById('cpc')
+    };
+
+    const output = {
+      beRoas: document.getElementById('beRoas'),
+      maxCpa: document.getElementById('maxCpa'),
+      maxCpc: document.getElementById('maxCpc'),
+      targetRoas: document.getElementById('targetRoas'),
+      status: document.getElementById('status')
+    };
+
+    const toNumber = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const formatCurrency = (value) =>
+      new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 2 }).format(value);
+
+    const formatRoas = (value) => value.toFixed(2) + '×';
+
+    function calculate() {
+      const price = Math.max(0, toNumber(fields.price.value));
+      const marginPct = Math.max(0, Math.min(100, toNumber(fields.margin.value)));
+      const shipping = Math.max(0, toNumber(fields.shipping.value));
+      const crPct = Math.max(0, Math.min(100, toNumber(fields.cr.value)));
+      const cpcInput = Math.max(0, toNumber(fields.cpc.value));
+
+      const marginAmount = price * (marginPct / 100);
+      const maxCpa = marginAmount - shipping;
+
+      if (maxCpa <= 0 || price <= 0) {
+        output.beRoas.textContent = 'N/A';
+        output.maxCpa.textContent = 'N/A';
+        output.maxCpc.textContent = 'N/A';
+        output.targetRoas.textContent = 'N/A';
+        output.status.textContent = 'Při těchto vstupech vychází nulová nebo záporná profitabilita před reklamou. Zvyšte marži, cenu nebo snižte náklady.';
+        return;
+      }
+
+      const breakEvenRoas = price / maxCpa;
+      const targetRoas = breakEvenRoas * 1.2;
+      const maxCpc = maxCpa * (crPct / 100);
+      const impliedCpa = crPct > 0 ? cpcInput / (crPct / 100) : Infinity;
+
+      output.beRoas.textContent = formatRoas(breakEvenRoas);
+      output.maxCpa.textContent = formatCurrency(maxCpa);
+      output.maxCpc.textContent = formatCurrency(maxCpc);
+      output.targetRoas.textContent = formatRoas(targetRoas);
+
+      if (crPct <= 0) {
+        output.status.textContent = 'Konverzní poměr je 0 %, nelze odhadnout dosažitelnou CPA z CPC.';
+      } else if (impliedCpa <= maxCpa) {
+        output.status.textContent = `Aktuální CPC (${formatCurrency(cpcInput)}) je vzhledem ke konverznímu poměru v break-even limitu.`;
+      } else {
+        output.status.textContent = `Pozor: při CPC ${formatCurrency(cpcInput)} a CR ${crPct.toFixed(2)} % vychází CPA ${formatCurrency(impliedCpa)}, což je nad maximem.`;
+      }
+    }
+
+    Object.values(fields).forEach((field) => field.addEventListener('input', calculate));
+    calculate();
+  </script>
+</body>
+</html>
